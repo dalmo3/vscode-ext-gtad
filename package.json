@@ -1,7 +1,9 @@
 {
-	"name": "vscode-ext-hello",
-	"displayName": "vscode-ext-hello",
-	"description": "tutorial",
+	"name": "vscode-ext-gtad",
+	"displayName": "vscode-ext-gtad",
+  "description": "Opens the actual definition of a symbol in TypeScript projects/modules.",
+  "publisher": "dalmo3",
+  "author": "Dalmo Mendonça",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.47.0"
@@ -10,14 +12,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:vscode-ext-hello.helloWorld"
+		"onCommand:vscode-ext-gtad.goToActualDefinition"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "vscode-ext-hello.helloWorld",
-				"title": "Hello World"
+				"command": "vscode-ext-gtad.goToActualDefinition",
+				"title": "Go to Actual Definition"
 			}
 		]
 	},
