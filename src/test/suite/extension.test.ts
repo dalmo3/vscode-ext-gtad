@@ -23,22 +23,6 @@ suite('Extension Test Suite', () => {
 suite('Unit tests', () => {});
 
 suite('End to End tests', () => {
-  // DEPRECATED: opening folder and doc via .vscode/launch.json
-  // test('should open this document', async () => {
-  // const folder = await vscode.commands.executeCommand(
-  //   'vscode.openFolder',
-  //   vscode.Uri.file(__dirname)
-  // );
-
-  //   console.log(2);
-  //   const document = await vscode.workspace.openTextDocument(THIS_DOC_PATH);
-  //   console.log(3);
-  //   const editor = await vscode.window.showTextDocument(document);
-  // const uri = vscode.window.activeTextEditor?.document.uri;
-
-  //   assert.strictEqual(uri?.path, THIS_DOC_URI.path);
-  // });
-
   test('should open this document on startup', async () => {
     const openPath = path.normalize(
       vscode.window.activeTextEditor?.document.uri.path as string
@@ -49,4 +33,7 @@ suite('End to End tests', () => {
     );
     assert.strictEqual(openPath, `\\${targetPath}`);
   });
+
+  
+
 });
