@@ -24,6 +24,8 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+        "${workspaceFolder}/src/test/suite/",
+        "${workspaceFolder}/src/test/suite/extension.test.ts",
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
 			],
