@@ -16,6 +16,16 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+    "configuration":{
+      "title": "Go to Actual Definition",
+      "properties": {
+        "vscode-ext-gtad.debug" :{
+          "description": "Enable debug messages.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
 		"commands": [
 			{
 				"command": "vscode-ext-gtad.goToActualDefinition",

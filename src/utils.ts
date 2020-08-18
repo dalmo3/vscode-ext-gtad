@@ -1,58 +1,72 @@
-
 import * as vscode from 'vscode';
 
-// todo verbose option on extension settings?
-const VERBOSE = false;
+export const DEBUG = vscode.workspace
+  .getConfiguration('vscode-ext-gtad')
+  .get('debug');
 
-export const logger = (...args: any[]) => {
-  if (VERBOSE) console.log(...args);
+
+export const logger = {
+  log: (...args: any[]) => {
+    if (DEBUG) console.log(...args);
+  },
+  error: (...args: any[]) => {
+    if (DEBUG) console.error(...args);
+  },
 };
 
 /**
  * Get symbol tree
- * 
+ *
  * todo: It's not returning the actual tree, only the top level symbols
  * The top level symbols should have a `children` property but they don't
  */
 const findAllSymbolsInCurrentDocument = async () => {
-  const allSymbols = (await vscode.commands.executeCommand(
-    'vscode.executeDocumentSymbolProvider',
-    vscode.window.activeTextEditor?.document.uri
-  )) as vscode.DocumentSymbol[];
-  logger('symbols in current doc.... ', allSymbols);
-  return allSymbols;
+  let allSymbols;
+  try {
+    allSymbols = await vscode.commands.executeCommand(
+      'vscode.executeDocumentSymbolProvider',
+      vscode.window.activeTextEditor?.document.uri
+    );
+    logger.log('symbols in current doc.... ', allSymbols);
+  } catch (e) {
+    logger.error('Error in executeDocumentSymbolProvider: ', e);
+  }
+  return allSymbols as vscode.DocumentSymbol[];
 };
 
 /**
  * Navigates to the symbol definition in the current document.
  * Currently opens the doc before finding the symbol and uses the command bar to navigate
- *  
+ *
  * todo: sould be able to find all symbols then match, but that's broken
- * 
+ *
  * @param symbolName the symbol we're looking for
  */
 const goToSymbol = async (symbolName: string) => {
-
   // find symbol def in current document
-  // unused 
+  // unused
   const allSymbols = await findAllSymbolsInCurrentDocument();
   const symbolDef = allSymbols.find((s) => s.name === symbolName);
-  logger('symbol found? ', symbolDef);
+  logger.log('Symbol found: ', symbolDef);
   // if (!symbolDef)
-    // return vscode.window.showInformationMessage('No definitions found!');
+  // return vscode.window.showInformationMessage('No definitions found!');
   // todo: goto symbol declaration
   // if we have the symbol, we have the range and we can go to
-  // actually 
+  // actually
 
-  // look for the symbol definition in the current document
-  await vscode.commands.executeCommand(
-    'workbench.action.quickOpen',
-    `@${symbolName}`
-  );
-  // the previous command only opens the command bar so we need to 'enter'
-  await vscode.commands.executeCommand(
-    'workbench.action.acceptSelectedQuickOpenItem'
-  );
+  try {
+    // look for the symbol definition in the current document
+    await vscode.commands.executeCommand(
+      'workbench.action.quickOpen',
+      `@${symbolName}`
+    );
+    // the previous command only opens the command bar so we need to 'enter'
+    await vscode.commands.executeCommand(
+      'workbench.action.acceptSelectedQuickOpenItem'
+    );
+  } catch (e) {
+    logger.error('Error in workbench.action.quickOpen', e);
+  }
 };
 
 /**
@@ -78,17 +92,19 @@ export const findDefinition = (
   });
 
   vscode.window.showTextDocument(candidate).then(
-    async (doc) => {
-      vscode.window.showInformationMessage(`Found .${ext} file`);
+    async () => {
+      if (DEBUG) vscode.window.showInformationMessage(`Found .${ext} file.`);
 
       // file is open, proceed to look for symbol definition inside of it
       await goToSymbol(symbolName);
     },
-    (error) => {
-      vscode.window.showErrorMessage(`.${ext} not found`);
+    () => {
+      if (DEBUG) vscode.window.showErrorMessage(`.${ext} not found.`);
       //not found, trying next extension
       if (next.length) {
         findDefinition(symbolName, typeDefFile, next);
+      } else if (DEBUG) {
+        vscode.window.showErrorMessage(`Defintion file not found.`);
       }
     }
   );
