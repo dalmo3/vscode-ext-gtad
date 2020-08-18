@@ -52,7 +52,11 @@ const goToActualDefinition = async () => {
     const symbolTypeDef = symbolTypeDefs[0];
 
     // finally, we dive into the definition files
-    findDefinition(currentSymbolText, symbolTypeDef.targetUri, ['ts', 'js']);
+    const found = await findDefinition(currentSymbolText, symbolTypeDef.targetUri, ['ts', 'js']);
+
+    // if all fails, use the built-in "Go to Implementations" command
+    if (!found) vscode.commands.executeCommand('editor.action.revealDefinition')
+
   } catch (e) {
     logger.error('Error running extension: ', e);
   }

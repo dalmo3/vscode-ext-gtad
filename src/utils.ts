@@ -4,7 +4,6 @@ export const DEBUG = vscode.workspace
   .getConfiguration('vscode-ext-gtad')
   .get('debug');
 
-
 export const logger = {
   log: (...args: any[]) => {
     if (DEBUG) console.log(...args);
@@ -79,7 +78,7 @@ const goToSymbol = async (symbolName: string) => {
  * @param typeDefFile the definition file found by vs code, typically <file>.d.ts
  * @param extensions the array of file extensions we'll look for
  */
-export const findDefinition = (
+export const findDefinition = async (
   symbolName: string,
   typeDefFile: vscode.Uri,
   extensions: string[]
@@ -90,22 +89,24 @@ export const findDefinition = (
   const candidate = typeDefFile.with({
     path: typeDefFile.path.slice(0, -4) + ext,
   });
-
+  let found = false;
   vscode.window.showTextDocument(candidate).then(
     async () => {
       if (DEBUG) vscode.window.showInformationMessage(`Found .${ext} file.`);
 
       // file is open, proceed to look for symbol definition inside of it
       await goToSymbol(symbolName);
+      found = true;
     },
-    () => {
+    async () => {
       if (DEBUG) vscode.window.showErrorMessage(`.${ext} not found.`);
       //not found, trying next extension
       if (next.length) {
-        findDefinition(symbolName, typeDefFile, next);
+        found = await findDefinition(symbolName, typeDefFile, next);
       } else if (DEBUG) {
         vscode.window.showErrorMessage(`Defintion file not found.`);
       }
     }
   );
+  return found
 };

@@ -31,6 +31,7 @@ suite('End to End tests', () => {
       __dirname,
       '../../../src/test/suite/extension.test.ts'
     );
+    // there's a quirk with uri.path in that it adds a `/` in front of the path... maybe this is Windows-only? anyway we need to adapt the test a bit for it to pass
     assert.strictEqual(openPath, `\\${targetPath}`);
   });
 
