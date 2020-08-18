@@ -1,57 +1,74 @@
 {
-	"name": "vscode-ext-gtad",
-	"displayName": "vscode-ext-gtad",
+  "name": "vscode-ext-gtad",
+  "displayName": "vscode-ext-gtad",
   "description": "Opens the actual definition of a symbol in TypeScript projects/modules.",
   "publisher": "dalmo3",
   "author": "Dalmo Mendonça",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.47.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:vscode-ext-gtad.goToActualDefinition"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-    "configuration":{
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.47.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:vscode-ext-gtad.goToActualDefinition"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
       "title": "Go to Actual Definition",
       "properties": {
-        "vscode-ext-gtad.debug" :{
+        "vscode-ext-gtad.debug": {
           "description": "Enable debug messages.",
           "type": "boolean",
           "default": true
         }
       }
     },
-		"commands": [
-			{
-				"command": "vscode-ext-gtad.goToActualDefinition",
-				"title": "Go to Actual Definition"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"lint": "eslint src --ext ts",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.47.0",
-		"@types/glob": "^7.1.3",
-		"@types/mocha": "^8.0.0",
-		"@types/node": "^14.0.27",
-		"eslint": "^7.6.0",
-		"@typescript-eslint/eslint-plugin": "^3.8.0",
-		"@typescript-eslint/parser": "^3.8.0",
-		"glob": "^7.1.6",
-		"mocha": "^8.0.1",
-		"typescript": "^3.8.3",
-		"vscode-test": "^1.4.0"
-	}
+    "commands": [
+      {
+        "command": "vscode-ext-gtad.goToActualDefinition",
+        "title": "Go to Actual Definition"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "vscode-ext-gtad.goToActualDefinition",
+          "group": "navigation",
+          "when": "config.vscode-ext-gtad.debug && editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "vscode-ext-gtad.goToActualDefinition",
+        "key": "undefined",
+        "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+        
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.47.0",
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.0",
+    "@types/node": "^14.0.27",
+    "eslint": "^7.6.0",
+    "@typescript-eslint/eslint-plugin": "^3.8.0",
+    "@typescript-eslint/parser": "^3.8.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.0.1",
+    "typescript": "^3.8.3",
+    "vscode-test": "^1.4.0"
+  }
 }

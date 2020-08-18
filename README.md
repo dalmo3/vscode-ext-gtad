@@ -1,48 +1,50 @@
 # Go to Actual Definition
 
-Opens the actual definition of a symbol in TypeScript projects/modules.
+Opens the actual definition of a symbol in TypeScript projects/modules. 
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+In TypeScript projects (or JS with Intellisense), the default VS Code command 'Go to Definition' takes you to the type declaration instead of the actual function/object definition, essentially behaving the same as the 'Go to Type Definition' command.
 
-For example if there is an image subfolder under your extension project workspace:
+This extension searches for the actual symbol definition.
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+If that fails, it falls back to the default 'Go to Definition'.
 
 ## Requirements
 
+Currently only tested on Windows 10. May or may not work elsewhere.
+
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+* `vscode-ext-gtad.debug`: Enable/disable debug messages
 
-For example:
+### Key bindings
 
-This extension contributes the following settings:
+There's a placeholder keybinding rule you can edit under VS Code's `Preferences: Keyboard Shorctut`.
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+The suggested key is `F12` - It'll override the shortcut for VS Code's default 'Go to Definition', which is OK since the script falls back to that.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Currently the extension only looks for `ts/js` files in the same directory as the `.d.ts` definition file. Admittedly, that's a pretty narrow use case.
+
+There are many cases under which the extension will not produce the expected results:
+* When the `ts/js` files exist but are empty
+* When types are defined in a separate `/types` folder
+* When types are defined by a separate `@types` module
+* Probably a lot more...
+
+I plan to address some of the most common cases at some point.
+
+If you have suggestions on how to address those or other cases please open an issue or PR directly.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.1.0
+Initial development.
 
-### 1.0.0
+## Contributing
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Everone is welcome.
 
 ## Licence
