@@ -56,8 +56,7 @@ const goToActualDefinition = async () => {
      */
     const found = await findDefinition(
       currentSymbolText,
-      symbolTypeDef.targetUri,
-      ['ts', 'js']
+      symbolTypeDef.targetUri
     );
 
     // if all fails, use the built-in "Go to Implementations" command

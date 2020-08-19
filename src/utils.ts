@@ -116,11 +116,29 @@ const goToSymbol = async (symbolName: string) => {
 };
 
 /**
- * todo: this should create all Uri's that we'll look for
- * this function could get really messy as we expand the use cases covered
- * should return Uri[]
+ * Generates array of 'candidates', i.e. all files where the symbol definition might be located
+ * 
+ * Element ordering is important since the algorithm stops on the first match
+ * 
+ * @param symbolName the symbol whose definition we're looking for
+ * @param typeDefFile the definition file found by vs code, typically <file>.d.ts
  */
-const createCandidateArray = () => {};
+const createCandidateArray = (symbolName: string, typeDefFile: vscode.Uri) => {
+  const candidates: vscode.Uri[] = [];
+
+  /**
+   * Candidates within the same directory. Assumes that a <file>.d.ts will also have an equivalent <file>.ts or <file>.js
+   */
+  const extensions = ['ts', 'js'];
+  for (const ext of extensions) {
+    const candidate = typeDefFile.with({
+      path: typeDefFile.path.slice(0, -4) + ext,
+    });
+    candidates.push(candidate);
+  }
+
+  return candidates;
+};
 
 /**
  *
@@ -130,70 +148,53 @@ const createCandidateArray = () => {};
  *
  * @param symbolName the symbol whose definition we're looking for
  * @param typeDefFile the definition file found by vs code, typically <file>.d.ts
- * @param extensions the array of file extensions we'll look for
  *
  * todo: swap last parameter for a Uri[] with candidates, and create this array somewhere else
  */
 export const findDefinition = async (
   symbolName: string,
-  typeDefFile: vscode.Uri,
-  extensions: string[]
+  typeDefFile: vscode.Uri
 ): Promise<boolean> => {
-  const [ext, ...next] = extensions;
+  const candidates = createCandidateArray(symbolName, typeDefFile);
 
-  // create new Uri changing path ending from '.d.ts' to '.ts' and try to open it
-  const candidate = typeDefFile.with({
-    path: typeDefFile.path.slice(0, -4) + ext,
-  });
-  // let found = Promise.resolve(false);
+  // fail early
+  if (!candidates.length) return false;
 
-  try {
-    // check if file exists, throws if it doesn't
-    await vscode.workspace.fs.stat(candidate);
-    // don't like using Exception for execution flow, but couldn't find another way to check if file exists without using fs.stat
+  for (const candidate of candidates) {
+    try {
+      // check if file exists, throws if it doesn't
+      await vscode.workspace.fs.stat(candidate);
+      // don't like using Exception for execution flow, but couldn't find another way to check if file exists without using fs.stat
 
-    if (DEBUG) vscode.window.showInformationMessage(`Found .${ext} file.`);
+      if (DEBUG)
+        vscode.window.showInformationMessage(
+          `Found ${candidate.path.split('/').slice(-1)}`
+        );
 
-    // proceed to look for symbol definition inside of it
-    const foundsym = await findSymbolInDocument(symbolName, candidate);
-    if (foundsym) {
-      console.log('found symbol', foundsym);
-      // go to locations api reference straight from the source code
-      // https://github.com/microsoft/vscode/blob/8434c86e5665341c753b00c10425a01db4fb8580/src/vs/editor/contrib/gotoSymbol/goToCommands.ts#L719
-      vscode.commands.executeCommand(
-        'editor.action.goToLocations',
-        foundsym.location.uri,
-        foundsym.location.range.start,
-        [],
-        'goto'
-      );
+      // proceed to look for symbol definition inside of it
+      const foundsym = await findSymbolInDocument(symbolName, candidate);
+      if (foundsym) {
+        console.log('found symbol', foundsym);
+        // go to locations api reference straight from the source code
+        // https://github.com/microsoft/vscode/blob/8434c86e5665341c753b00c10425a01db4fb8580/src/vs/editor/contrib/gotoSymbol/goToCommands.ts#L719
+        vscode.commands.executeCommand(
+          'editor.action.goToLocations',
+          foundsym.location.uri,
+          foundsym.location.range.start,
+          [],
+          'goto'
+        );
+
+        // the first match breaks the loop
+        return true;
+      }
+    } catch (error) {
+      if (DEBUG)
+        vscode.window.showErrorMessage(
+          `${candidate.path.split('/').slice(-1)} not found.`
+        );
+      //not found, trying next candidate
     }
-    return !!foundsym;
-  } catch (error) {
-    if (DEBUG) vscode.window.showErrorMessage(`.${ext} not found.`);
-    //not found, trying next extension
-
-    return findDefinition(symbolName, typeDefFile, next);
   }
-
-  // old method, opened the document first
-  // vscode.window.showTextDocument(candidate).then(
-  //   async () => {
-  //     if (DEBUG) vscode.window.showInformationMessage(`Found .${ext} file.`);
-
-  //     // file is open, proceed to look for symbol definition inside of it
-  //     await goToSymbol(symbolName);
-  //     found = true;
-  //   },
-  //   async () => {
-  //     if (DEBUG) vscode.window.showErrorMessage(`.${ext} not found.`);
-  //     //not found, trying next extension
-  //     if (next.length) {
-  //       found = await findDefinition(symbolName, typeDefFile, next);
-  //     } else if (DEBUG) {
-  //       vscode.window.showErrorMessage(`Defintion file not found.`);
-  //     }
-  //   }
-  // );
-  // return found;
+  return false;
 };
