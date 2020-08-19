@@ -165,6 +165,7 @@ export const findDefinition = async (
         foundsym.location.uri,
         foundsym.location.range.start,
         [],
+        'goto'
       );
     }
     return !!foundsym;
