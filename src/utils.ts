@@ -44,18 +44,15 @@ export interface ISymbolMeta {
 export const findDefinition = async (
   symbolMeta: ISymbolMeta
 ): Promise<boolean> => {
-  const candidates = await createCandidateArray(symbolMeta);
+  const candidates = await generateCandidateArray(symbolMeta);
 
   // fail early
   if (!candidates.length) return false;
 
   for (const candidate of candidates) {
-    try {
-      // check if file exists, throws if it doesn't
-      await vscode.workspace.fs.stat(candidate);
-      // don't like using Exception for execution flow, but couldn't find another way to check if file exists without using fs.stat
-
-      if (DEBUG)
+    //this test could be redundant if it is already done inside the generators
+    if (await fileExists(candidate)) {
+      DEBUG &&
         vscode.window.showInformationMessage(
           `Found ${candidate.path.split('/').slice(-1)}`
         );
@@ -72,7 +69,7 @@ export const findDefinition = async (
         // the first match breaks the loop
         return true;
       }
-    } catch (error) {
+    } else {
       if (DEBUG)
         vscode.window.showErrorMessage(
           `${candidate.path.split('/').slice(-1)} not found.`
@@ -126,13 +123,11 @@ const findSymbolInDocument = async (symbolName: string, uri: vscode.Uri) => {
  * @param symbolName the symbol whose definition we're looking for
  * @param typeDefFile the definition file found by vs code, typically <file>.d.ts
  */
-const createCandidateArray = async (symbolMeta: ISymbolMeta) => {
-  const candidates: vscode.Uri[] = [];
-
-  // Rule 1
-  const typeDefUri = await executeDefinitionProvider(symbolMeta);
-  if (typeDefUri)
-    candidates.push(...await getCandidatesFromTypeDefUri(typeDefUri));
+const generateCandidateArray = async (symbolMeta: ISymbolMeta) => {
+  const candidates: vscode.Uri[] = [
+    ...(await getJsFromSameFolder(symbolMeta)),
+    // ... add other rules here
+  ];
 
   return candidates;
 };
@@ -140,8 +135,25 @@ const createCandidateArray = async (symbolMeta: ISymbolMeta) => {
 /**
  * Candidates within the same directory as the type definition file. Assumes that a <file>.d.ts will also have an equivalent <file>.ts or <file>.js
  */
-const getCandidatesFromTypeDefUri = async (typeDefUri: vscode.Uri) => {
+const getJsFromSameFolder = async (symbolMeta: ISymbolMeta) => {
   const candidates: vscode.Uri[] = [];
+
+  const typeDefUri = await executeDefinitionProvider(symbolMeta);
+
+  if (typeDefUri) {
+    const candidate = typeDefUri.with({
+      path: typeDefUri.path.slice(0, -4) + 'js',
+    });
+    if (await fileExists(candidate)) candidates.push(candidate);
+  }
+
+  return candidates;
+};
+
+const old_getCandidatesFromSameFolder = async (symbolMeta: ISymbolMeta) => {
+  const candidates: vscode.Uri[] = [];
+
+  const typeDefUri = await executeDefinitionProvider(symbolMeta);
 
   if (typeDefUri) {
     const extensions = ['ts', 'js'];
@@ -153,4 +165,18 @@ const getCandidatesFromTypeDefUri = async (typeDefUri: vscode.Uri) => {
     }
   }
   return candidates;
+};
+
+/**
+ * Hacky way to test if file exists.
+ *
+ * @param uri
+ */
+const fileExists = async (uri: vscode.Uri): Promise<boolean> => {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch {
+    return false;
+  }
 };
