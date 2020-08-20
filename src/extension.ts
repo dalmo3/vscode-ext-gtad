@@ -60,9 +60,6 @@ const getSymbolMeta = (): ISymbolMeta | undefined => {
 /**
  * this method is called when your extension is activated
  * your extension is activated the very first time the command is executed
- *
- * todo: calling the extension too early, before TS is loaded, shouldn't be possible
- * 
  * 
  * @param context
  */

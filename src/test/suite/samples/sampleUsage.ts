@@ -1,5 +1,5 @@
 import { ExampleClassDefinition, exampleFunction } from './sampleDefinition';
 
-const exampleMethodTest = exampleFunction('');
+const exampleFunctionTest = exampleFunction('');
 
 const {exampleMethod, exampleString} = new ExampleClassDefinition();

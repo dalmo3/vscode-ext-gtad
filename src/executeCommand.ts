@@ -62,7 +62,7 @@ export const goToSymbol = (symbol: DocumentSymbolInformation) => {
   vscode.commands.executeCommand(
     'editor.action.goToLocations',
     symbol.location.uri,
-    symbol.location.range.start,
+    symbol.selectionRange.start,
     [],
     'goto'
   );

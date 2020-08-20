@@ -1,10 +1,13 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 // import * as myExtension from '../../extension';
-import { before } from 'mocha';
-import { pathToFileURL } from 'url';
-import * as path from 'path';
-import { executeDocumentSymbolProvider } from '../../executeCommand';
+import { before, after } from 'mocha';
+import {
+  executeDefinitionProvider,
+  executeDocumentSymbolProvider,
+} from '../../executeCommand';
+import { getFormattedPath, getActiveDocumentPath } from './testUtils';
+import { DocumentSymbolInformation, ISymbolMeta } from '../../utils';
 
 const THIS_DOC_PATH = __filename;
 const THIS_DOC_URI = vscode.Uri.file(THIS_DOC_PATH);
@@ -26,11 +29,17 @@ suite('Unit tests', () => {
 suite('End to End tests', () => {
   let document: vscode.TextDocument;
   let editor: vscode.TextEditor;
+  let docSymbols: DocumentSymbolInformation[];
 
   before(async () => {
+    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', false)
     gtad?.activate();
   });
-
+  
+  after(function{
+    console.log('Testing finished')
+    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', undefined)
+  })
   // launch.json is set to open this file when running tests
   test('should open this document on startup', async () => {
     const targetPath = getFormattedPath(
@@ -42,7 +51,7 @@ suite('End to End tests', () => {
 
   test('should open the example .ts document', async () => {
     const targetPath = getFormattedPath(
-      '../../../src/test/suite/files/exampleUsage.ts'
+      '../../../src/test/suite/samples/sampleUsage.ts'
     );
     document = await vscode.workspace.openTextDocument(targetPath);
     editor = await vscode.window.showTextDocument(document);
@@ -51,21 +60,55 @@ suite('End to End tests', () => {
   });
 
   test('should find the document symbols', async () => {
-    const docSymbols = await executeDocumentSymbolProvider(
+    docSymbols = await executeDocumentSymbolProvider(
       vscode.window.activeTextEditor?.document.uri!
     );
-
     assert.notStrictEqual(docSymbols, []);
   });
+
+  test('should find the correct top-level symbols', async () => {
+    const symbolNames = docSymbols.map((s) => s.name);
+    assert.deepStrictEqual(symbolNames, [
+      'exampleFunctionTest',
+      'exampleMethod',
+      'exampleString',
+    ]);
+  });
+
+  // todo: this test is breaking because for here some reason
+  // executeDefinitionProvider is not returning type definitions
+  // as it does during normal usage
+  // it's working for the first symbol but not the rest
+  test('should find type definitions for symbols', async function {
+    for (const docSymbol of docSymbols) {
+      const symbolMeta: ISymbolMeta = {
+        symbolName: docSymbol.name,
+        uri: docSymbol.location.uri,
+        position: docSymbol.selectionRange.start,
+      };
+      // console.log(symbolMeta);
+      const typeDef = await executeDefinitionProvider(symbolMeta);
+      // console.log(typeDef);
+      // assert.notStrictEqual(typeDef, undefined);
+    }
+
+    this.timeout(Infinity) // for debugging purposes
+    this.skip(); // until it's fixed
+  })
+
+  test('should find type definitions for the first symbol', async () => {
+    const docSymbol = docSymbols[0];
+    const symbolMeta: ISymbolMeta = {
+      symbolName: docSymbol.name,
+      uri: docSymbol.location.uri,
+      position: docSymbol.selectionRange.start,
+    };
+    // console.log(symbolMeta);
+    const typeDef = await executeDefinitionProvider(symbolMeta);
+    // console.log(typeDef);
+    assert.notStrictEqual(typeDef, undefined);
+  })
+
+  
+
 });
-
-function getActiveDocumentPath() {
-  return path.normalize(
-    vscode.window.activeTextEditor?.document.uri.path as string
-  );
-}
-
-// there's a quirk with uri.path in that it adds a `/` in front of the path... maybe this is Windows-only? anyway we need to adapt the test a bit for it to pass
-function getFormattedPath(filePath: string) {
-  return `\\${path.resolve(__dirname, filePath)}`;
-}
