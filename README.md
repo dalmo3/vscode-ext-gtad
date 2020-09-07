@@ -22,14 +22,14 @@ Currently only tested on Windows 10. May or may not work elsewhere.
 
 There's a placeholder keybinding rule you can edit under VS Code's `Preferences: Keyboard Shorctut`.
 
-The suggested key is `F12` - It'll override the shortcut for VS Code's default 'Go to Definition', which is OK since the script falls back to that.
+The suggested key is `F12` - It'll override the shortcut for VS Code's default 'Go to Definition', which is mostly OK since the script falls back to that.
 
 ## Known Issues
 
-Currently the extension only looks for `ts/js` files in the same directory as the `.d.ts` definition file. Admittedly, that's a pretty narrow use case.
+Currently the extension leverages VS Code's built-in type definition locator, which takes you to the `foo.d.ts` definition file. Then we look for the respective `foo.js` file in that same directory. Admittedly, that's a pretty narrow use case. 
 
 There are many cases under which the extension will not produce the expected results:
-* When the `ts/js` files exist but are empty
+* When the `.js` file exist but are empty
 * When types are defined in a separate `/types` folder
 * When types are defined by a separate `@types` module
 * Probably a lot more...
@@ -41,10 +41,12 @@ If you have suggestions on how to address those or other cases please open an is
 ## Release Notes
 
 ### 0.1.0
-Initial development.
+Initial public release.
 
 ## Contributing
 
 Everone is welcome.
 
 ## Licence
+
+MIT
