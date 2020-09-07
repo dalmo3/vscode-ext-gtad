@@ -11,6 +11,7 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+        "--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
@@ -24,6 +25,7 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+        "--disable-extensions",
         "${workspaceFolder}/src/test/suite/",
         "${workspaceFolder}/src/test/suite/extension.test.ts",
 				"--extensionDevelopmentPath=${workspaceFolder}",

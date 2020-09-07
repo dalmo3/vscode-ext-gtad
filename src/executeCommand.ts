@@ -8,12 +8,12 @@ import { DocumentSymbolInformation, ISymbolMeta, logger } from './utils';
 export const executeDefinitionProvider = async (
   symbolMeta: ISymbolMeta
 ): Promise<vscode.Uri | undefined> => {
-  const typeDefinition = (await vscode.commands.executeCommand(
+  const typeDefinition = await vscode.commands.executeCommand(
     'vscode.executeDefinitionProvider',
     // 'vscode.executeTypeDefinitionProvider', // for some reason this doesn't work!?
     symbolMeta.uri,
     symbolMeta.position
-  )) as vscode.LocationLink[];
+  ) as vscode.LocationLink[];
 
   logger.log('Definitions found for current symbol: ', typeDefinition);
 

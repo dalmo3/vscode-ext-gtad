@@ -7,7 +7,7 @@ import {
   executeDocumentSymbolProvider,
 } from '../../executeCommand';
 import { getFormattedPath, getActiveDocumentPath } from './testUtils';
-import { DocumentSymbolInformation, ISymbolMeta, logger } from '../../utils';
+import { DocumentSymbolInformation, findDefinition, ISymbolMeta, logger } from '../../utils';
 
 const THIS_DOC_PATH = __filename;
 const THIS_DOC_URI = vscode.Uri.file(THIS_DOC_PATH);
@@ -17,30 +17,30 @@ suite('Unit tests', () => {
   // todo: add unit tests for the helper functions (commands, etc)
 });
 
-
 /**
  * this better model with a single execution flow
  */
-suite('End to End tests', function (){
-  this.timeout(Infinity)
+suite('Pseudo Unit tests', function () {
+  this.timeout(Infinity);
   let document: vscode.TextDocument;
   let editor: vscode.TextEditor;
   let docSymbols: DocumentSymbolInformation[];
 
   before(async () => {
-    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', false)
-    
-    logger.log(vscode.workspace.getConfiguration(''))
+    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', false);
+
+    logger.log(vscode.workspace.getConfiguration(''));
     // not needed yet
     // await gtad?.activate();
-
   });
-  
-  after(function() {
-    console.log('Testing finished')
-    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', undefined)
-  })
-  
+
+  after(function () {
+    console.log('Testing finished');
+    vscode.workspace
+      .getConfiguration('vscode-ext-gtad')
+      .update('debug', undefined);
+  });
+
   // launch.json is set to open this file when running tests
   test('should open this document on startup', async () => {
     const targetPath = getFormattedPath(
@@ -55,56 +55,75 @@ suite('End to End tests', function (){
     );
     document = await vscode.workspace.openTextDocument(targetPath);
     editor = await vscode.window.showTextDocument(document);
-      
+
     const ks = await vscode.commands.executeCommand(
       'setContext',
       'editorTextFocuss',
       1
-      
-    )
+    );
     assert.strictEqual(getActiveDocumentPath(), targetPath);
-  // });
+    // });
 
-  //test('should find the document symbols', async () => {
+    //test('should find the document symbols', async () => {
     docSymbols = await executeDocumentSymbolProvider(
       vscode.window.activeTextEditor?.document.uri!
     );
     assert.notStrictEqual(docSymbols, []);
-  //});
+    //});
 
-  ///test('should find the correct top-level symbols', async () => {
+    // TODO remove this hack and test for definition provider availability
+    // Hack: delay 5 seconds to wait for definition provider to start
+    // without this the tests that depend on executeDefinitionProvider fail
+    await new Promise((res, rej) => {
+      setTimeout(() => {
+        res();
+      }, 2000);
+    });
+
+    ///test('should find the correct top-level symbols', async () => {
     const symbolNames = docSymbols.map((s) => s.name);
     assert.deepStrictEqual(symbolNames, [
       'exampleFunctionTest',
       'exampleMethod',
       'exampleString',
     ]);
-  //});
-    
-  // test('should find type definitions for the first symbol', async () => {
-    const docSymbol = docSymbols[0];
-    const symbolMeta: ISymbolMeta = {
-      symbolName: docSymbol.name,
-      uri: docSymbol.location.uri,
-      position: docSymbol.selectionRange.start,
-    };
-    // console.log(symbolMeta);
+    //});
 
-    
-    // TODO remove this hack and test for definition provider availability
-    // Hack: delay 5 seconds to wait for definition provider to start
-    await new Promise((res,rej)=> {
-      setTimeout(()=> {res()},5000)
-    })
-
-    const typeDef = await executeDefinitionProvider(symbolMeta);
+    // test('should find definitions for exampleFunctionTest', async () => {
+    const typeDef0 = await executeDefinitionProvider(
+      getSymbolMeta(docSymbols, 0)
+    );
     // console.log(typeDef);
-    assert.notStrictEqual(typeDef, undefined);
-  }).timeout(Infinity)
+    assert.strictEqual(typeDef0?.path.endsWith('sampleUsage.ts'), true);
+    // })
+    
+    // test('should find the correct definition for exampleMethod', async () => {
+    const typeDef1 = await executeDefinitionProvider(
+      getSymbolMeta(docSymbols, 1)
+    );
+    // console.log(typeDef);
+    //TODO find out why this is failing
+    // assert.strictEqual(typeDef0?.path.endsWith('sampleUsage.d.ts'), true);
+    // })
 
-  
+    
+    const definitionFound = await findDefinition(getSymbolMeta(docSymbols,0));
 
+    
+    // })
+  }).timeout(Infinity);
 });
+
+const getSymbolMeta = (
+  docSymbols: DocumentSymbolInformation[],
+  index: number
+) => ({
+  symbolName: docSymbols[0].name,
+  uri: docSymbols[0].location.uri,
+  position: docSymbols[0].selectionRange.start,
+});
+
+
 
 /** @deprecated too many separate async tests, not good */
 suite.skip('End to End tests', () => {
@@ -113,14 +132,16 @@ suite.skip('End to End tests', () => {
   let docSymbols: DocumentSymbolInformation[];
 
   before(async () => {
-    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', false)
+    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', false);
     gtad?.activate();
   });
-  
+
   after(function () {
-    console.log('Testing finished')
-    vscode.workspace.getConfiguration('vscode-ext-gtad').update('debug', undefined)
-  })
+    console.log('Testing finished');
+    vscode.workspace
+      .getConfiguration('vscode-ext-gtad')
+      .update('debug', undefined);
+  });
   // launch.json is set to open this file when running tests
   test('should open this document on startup', async () => {
     const targetPath = getFormattedPath(
@@ -160,7 +181,7 @@ suite.skip('End to End tests', () => {
   // executeDefinitionProvider is not returning type definitions
   // as it does during normal usage
   // it's working for the first symbol but not the rest
-  test('should find type definitions for symbols', async function (){
+  test('should find type definitions for symbols', async function () {
     for (const docSymbol of docSymbols) {
       const symbolMeta: ISymbolMeta = {
         symbolName: docSymbol.name,
@@ -173,9 +194,9 @@ suite.skip('End to End tests', () => {
       // assert.notStrictEqual(typeDef, undefined);
     }
 
-    this.timeout(Infinity) // for debugging purposes
+    this.timeout(Infinity); // for debugging purposes
     this.skip(); // until it's fixed
-  })
+  });
 
   test('should find type definitions for the first symbol', async () => {
     const docSymbol = docSymbols[0];
@@ -188,8 +209,5 @@ suite.skip('End to End tests', () => {
     const typeDef = await executeDefinitionProvider(symbolMeta);
     // console.log(typeDef);
     assert.notStrictEqual(typeDef, undefined);
-  })
-
-  
-
+  });
 });
