@@ -37,7 +37,7 @@
         {
           "command": "vscode-ext-gtad.goToActualDefinition",
           "group": "navigation",
-          "when": "config.vscode-ext-gtad.debug && editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+          "when": "editorHasTypeDefinitionProvider && editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
         }
       ]
     },
@@ -45,7 +45,7 @@
       {
         "command": "vscode-ext-gtad.goToActualDefinition",
         "key": "undefined",
-        "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+        "when": "editorHasTypeDefinitionProvider && editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
         
       }
     ]
