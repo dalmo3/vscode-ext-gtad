@@ -4,7 +4,7 @@ Opens the actual definition of a symbol in TypeScript projects/modules.
 
 ## Features
 
-In TypeScript projects (or JS with Intellisense), the default VS Code command 'Go to Definition' takes you to the type declaration instead of the actual function/object definition, essentially behaving the same as the 'Go to Type Definition' command.
+In TypeScript projects (or JS with Intellisense), the default VS Code command 'Go to Definition' takes you to the type declaration instead of the actual function/object definition, essentially behaving the same way as the 'Go to Type Definition' command.
 
 This extension searches for the actual symbol definition.
 
