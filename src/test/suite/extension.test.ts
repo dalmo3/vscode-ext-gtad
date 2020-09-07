@@ -82,7 +82,7 @@ suite('End to End tests', function (){
   //});
     
   // test('should find type definitions for the first symbol', async () => {
-    const docSymbol = docSymbols[2];
+    const docSymbol = docSymbols[0];
     const symbolMeta: ISymbolMeta = {
       symbolName: docSymbol.name,
       uri: docSymbol.location.uri,
